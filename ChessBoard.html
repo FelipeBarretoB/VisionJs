@@ -107,7 +107,8 @@
 
             tick() {
                 this.setState(state => ({
-                   time()
+                    seconds: state.seconds + this.checkSeconds(),
+                    minutes: state.minutes + this.checkMin(),
                 }));
             }
 
@@ -119,14 +120,23 @@
                 clearInterval(this.interval);
             }
             
-                        time() {
-                            if (this.state.minutes === 1) {
-                                this.state.minutes = 0;
-                                this.state.seconds = 59;
-                            } else if (this.state.seconds > 0) {
-                                this.state.seconds = this.state.seconds - 1;
-                            }
-                        }
+            checkMin(){
+                let sum=0;
+                if(this.state.minutes===1){
+                    sum=-1;
+                }
+                return sum;
+            }
+
+            checkSeconds(){
+                let sum=0;
+                if(this.state.minutes===1){
+                    sum=59;
+                }else if(this.state.seconds>0){
+                    sum=-1;
+                }
+                return sum;
+            }
             
 
             render() {
