@@ -68,6 +68,7 @@
     <div id="root"></div>
     <script type="text/babel">
 
+        //crea los cuadrados como botones
         function Square(props) {
             return (
                 <button className="square" onClick={props.onClick} >
@@ -76,31 +77,48 @@
             );
         }
 
+
+        //big boy class con el 99% del codigo
         class Board extends React.Component {
             constructor(props) {
                 super(props);
+                //variables
                 this.state = {
+                    //los 64 cuadrados
                     squares: Array(64).fill(null),
+                    //arreglo para la lista 
                     history: [],
+                    //puntaje 
                     score: 0,
+                    //casilla que se busca
                     tile: '  ',
+                    //min de comienzo
                     minutes: 1,
+                    //seg de comienzo
                     seconds: 0,
+                    //el timer que se muestra al clic un cuadrado
                     displaytTimer: 0,
+                    //timer que se usa para calcular el displayTimer
                     timer: 60,
+                    //se usa para el boton play, y pues, para empezar o no el timer
                     start: false,
+                    //cuantos clics se an dado, se usa para el historial
                     moves:0
                 };
             }
 
+            //god, basicamente el metodo más importante
             handleClick(i) {
                 const squares = this.state.squares.slice();
                 
-                if (calculateWinner(this.state.seconds, this.state.minutes) || !this.state.start) {
+                //cuando hacer que los botones paren de funcionar 
+                if (endGame(this.state.seconds, this.state.minutes) || !this.state.start) {
                     return;
                 }
-
+                //calcula el score
                 this.state.score = this.state.score + checkScore(this.state.tile, i);
+
+                //Mira varias cosas, si se le debe poner ✓ o X al cuadrado, crea le da un objeto a history para usar en la lista, y mueve moves
                 if (checkScore(this.state.tile, i) === 1) {
                     this.timeOnClic();
                     const plays={
@@ -120,7 +138,9 @@
                     this.state.history = this.state.history.concat(plays);
                     squares[i] = 'X';
                 }
+                //nueva tile por buscar
                 this.state.tile = getRandomTile();
+
 
                 this.setState({
                     squares: squares
@@ -129,18 +149,21 @@
                 
             }
 
+            //cuadrados go brrrr
             renderSquare(i) {
                 return <Square value={this.state.squares[i]}
                     onClick={() => this.handleClick(i)}
                 />;
             }
 
+            //boton de play
             renderPlayButton() {
                 return <button onClick={() => this.startGame()} >
                     {this.startGameText()}
                 </button>
             }
 
+            //texto que debe aparecer en el boton play
             startGameText() {
                 let text = "Restart"
                 if (this.state.start === false) {
@@ -148,12 +171,14 @@
                 }
                 return text;
             }
-
+            
+            //start y restart game 
             startGame() {
                 if (this.state.start === false) {
                     this.state.start = true;
                     this.state.tile = getRandomTile();
                 } else {
+                    this.state.timer=60;
                     this.state.seconds = 0;
                     this.state.minutes = 1;
                     this.state.score = 0;
@@ -164,6 +189,7 @@
 
             }
 
+            //timer go brrr
             tick() {
                 this.setState(state => ({
                     seconds: state.seconds + this.checkSeconds(),
@@ -171,19 +197,23 @@
                 }));
             }
 
+            //timer go brrr 2
             componentDidMount() {
                 this.interval = setInterval(() => this.tick(), 1000);
             }
 
+            //timer go brrr 3
             componentWillUnmount() {
                 clearInterval(this.interval);
             }
 
+            //calculos para el timer the guess Time
             timeOnClic() {
                 this.state.displaytTimer = this.state.timer - this.state.seconds;
                 this.state.timer = this.state.seconds;
             }
 
+            //timer go brrr 4
             checkMin() {
                 let sum = 0;
                 if (this.state.minutes === 1 & this.state.start) {
@@ -192,6 +222,7 @@
                 return sum;
             }
 
+            //timer go brrr 5
             checkSeconds() {
                 let sum = 0;
                 if (this.state.minutes === 1 & this.state.start) {
@@ -202,21 +233,24 @@
                 return sum;
             }
 
-
+            //god 2, basicamente todo el html se hace aca
             render() {
-                const winner = calculateWinner(this.state.seconds, this.state.minutes);
+                //determina si el juego acabo
+                const end = endGame(this.state.seconds, this.state.minutes);
                 let status;
-                if (winner) {
+                if (end) {
+                    //acabo
                     status = 'Time is up!!! final score: ' + this.state.score * 15 + ', Number of correct guesses: ' + this.state.score;
                 } else {
-                    status = 'Score ' + this.state.score;
+                    //no acabo
+                    status = 'Score ' + this.state.score*15;
                 }
 
-
+                //el timer, la busqueda de casillas, todas las casillas y la lista al final
                 return (
                     <div>
                         Time: {this.state.minutes}:{this.state.seconds}
-                        <div className="tileSearch">Tile:{this.state.tile}, guess Time 0:{this.state.displaytTimer}</div>
+                        <div className="tileSearch">Search for this tile: {this.state.tile}</div>
                         <div className="status">{status}</div>
                         <div className="board-row">
                             {this.renderSquare('a8')}8
@@ -310,25 +344,10 @@
             }
         }
 
-        class Game extends React.Component {
-            render() {
-                return (
-                    <div className="game">
-                        <div className="game-board">
-                            <Board />
-                        </div>
-                        <div className="game-info">
-                            <div>{/* status */}</div>
-                            <ol>{/* TODO */}</ol>
-                        </div>
-                    </div>
-                );
-            }
-        }
-
-        // ========================================
 
 
+
+        //calcula el puntaje
         function checkScore(tile, i) {
             let sum = 0;
             if (tile === i) {
@@ -337,6 +356,7 @@
             return sum;
         }
 
+        //lit lo que dice (saca una casilla random)
         function getRandomTile() {
             const list = ['a8', 'a7', 'a6', 'a5', 'a4', 'a3', 'a2', 'a1',
                 'b8', 'b7', 'b6', 'b5', 'b4', 'b3', 'b2', 'b1',
@@ -349,7 +369,8 @@
             return list[Math.floor(Math.random() * (63 - 0) + 0)];
         }
 
-        function calculateWinner(seconds, minutes) {
+        //determina si el juego acabo
+        function endGame(seconds, minutes) {
             let end = false;
             if (seconds === 0 & minutes === 0) {
                 end = true;
@@ -357,6 +378,7 @@
             return end;
         }
 
+        //render go brrrrrrrrrrrrrrrrrrrrrrrrrr
         ReactDOM.render(
             <Board />,
             document.getElementById('root')
