@@ -80,27 +80,32 @@
             constructor(props) {
                 super(props);
                 this.state = {
-                    squares: Array(9).fill(null),
+                    squares: Array(64).fill(null),
                     score: 0,
-                    tile: 'a8',
+                    tile: '  ',
                     minutes: 1,
-                    seconds: 0
+                    seconds: 0,
+                    displaytTimer: 0,
+                    timer:60,
+                    start: false
                 };
             }
 
             handleClick(i) {
                 const squares = this.state.squares.slice();
-                if (calculateWinner(this.state.seconds,this.state.minutes) ) {
+                if (calculateWinner(this.state.seconds, this.state.minutes) || !this.state.start) {
                     return;
                 }
-                this.state.score=this.state.score+checkScore(this.state.tile, i);
-                if(checkScore(this.state.tile, i)===1){
+                this.state.score = this.state.score + checkScore(this.state.tile, i);
+                if (checkScore(this.state.tile, i) === 1) {
+                    this.timeOnClic();
                     squares[i] = '✓';
-                }else{
+                } else {
+                    this.timeOnClic();
                     squares[i] = 'X';
                 }
-                this.state.tile=getRandomTile();
-               
+                this.state.tile = getRandomTile();
+
                 this.setState({
                     squares: squares
                 });
@@ -110,6 +115,33 @@
                 return <Square value={this.state.squares[i]}
                     onClick={() => this.handleClick(i)}
                 />;
+            }
+
+            renderPlayButton() {
+                return <button onClick={() => this.startGame()} >
+                    {this.startGameText()}
+                </button>
+            }
+
+            startGameText() {
+                let text = "Restart"
+                if (this.state.start === false) {
+                    text = "Play";
+                }
+                return text;
+            }
+
+            startGame() {
+                if (this.state.start === false) {
+                    this.state.start = true;
+                    this.state.tile = getRandomTile();
+                } else {
+                    this.state.seconds = 0;
+                    this.state.minutes = 1;
+                    this.state.score = 0;
+                    this.state.tile = getRandomTile();
+                }
+
             }
 
             tick() {
@@ -126,31 +158,36 @@
             componentWillUnmount() {
                 clearInterval(this.interval);
             }
-            
-            checkMin(){
-                let sum=0;
-                if(this.state.minutes===1){
-                    sum=-1;
+
+            timeOnClic(){
+                this.state.displaytTimer=this.state.timer-this.state.seconds;
+                this.state.timer=this.state.seconds;
+            }
+
+            checkMin() {
+                let sum = 0;
+                if (this.state.minutes === 1 & this.state.start) {
+                    sum = -1;
                 }
                 return sum;
             }
 
-            checkSeconds(){
-                let sum=0;
-                if(this.state.minutes===1){
-                    sum=59;
-                }else if(this.state.seconds>0){
-                    sum=-1;
+            checkSeconds() {
+                let sum = 0;
+                if (this.state.minutes === 1 & this.state.start) {
+                    sum = 59;
+                } else if (this.state.seconds > 0 & this.state.start) {
+                    sum = -1;
                 }
                 return sum;
             }
-            
+
 
             render() {
-                const winner = calculateWinner(this.state.seconds,this.state.minutes);
+                const winner = calculateWinner(this.state.seconds, this.state.minutes);
                 let status;
                 if (winner) {
-                    status = 'Time is up!!! final score: ' + this.state.score*15 + ', Number of correct guesses: ' +this.state.score;
+                    status = 'Time is up!!! final score: ' + this.state.score * 15 + ', Number of correct guesses: ' + this.state.score;
                 } else {
                     status = 'Score ' + this.state.score;
                 }
@@ -159,7 +196,7 @@
                 return (
                     <div>
                         Time: {this.state.minutes}:{this.state.seconds}
-                        <div className="tileSearch">Tile:{this.state.tile}</div>
+                        <div className="tileSearch">Tile:{this.state.tile}, guess Time 0:{this.state.displaytTimer}</div>
                         <div className="status">{status}</div>
                         <div className="board-row">
                             {this.renderSquare('a8')}8
@@ -241,7 +278,9 @@
                             {this.renderSquare('g1')}
                             {this.renderSquare('h1')}
                         </div>
-                        <div>a-----b------c-----d----e-----f------g------h</div>   
+                        <div>a-----b------c-----d----e-----f------g------h</div>
+                        {this.renderPlayButton()}
+                        
                     </div>
                 );
             }
@@ -266,32 +305,32 @@
         // ========================================
 
 
-        function checkScore(tile,i){
-            let sum=0;
-            if(tile===i){
-                sum=1;
+        function checkScore(tile, i) {
+            let sum = 0;
+            if (tile === i) {
+                sum = 1;
             }
-            return sum; 
+            return sum;
         }
 
-        function getRandomTile(){
-            const list=['a8','a7','a6','a5','a4','a3','a2','a1',
-            'b8','b7','b6','b5','b4','b3','b2','b1',
-            'c8','c7','c6','c5','c4','c3','c2','c1',
-            'd8','d7','d6','d5','d4','d3','d2','d1',
-            'e8','e7','e6','e5','e4','e3','e2','e1',
-            'f8','f7','f6','f5','f4','f3','f2','f1',
-            'g8','g7','g6','g5','g4','g3','g2','g1',
-            'h8','h7','h6','h5','h4','h3','h2','h1'];
-            return list[Math.floor(Math.random() * (63 - 0 )+0)];
+        function getRandomTile() {
+            const list = ['a8', 'a7', 'a6', 'a5', 'a4', 'a3', 'a2', 'a1',
+                'b8', 'b7', 'b6', 'b5', 'b4', 'b3', 'b2', 'b1',
+                'c8', 'c7', 'c6', 'c5', 'c4', 'c3', 'c2', 'c1',
+                'd8', 'd7', 'd6', 'd5', 'd4', 'd3', 'd2', 'd1',
+                'e8', 'e7', 'e6', 'e5', 'e4', 'e3', 'e2', 'e1',
+                'f8', 'f7', 'f6', 'f5', 'f4', 'f3', 'f2', 'f1',
+                'g8', 'g7', 'g6', 'g5', 'g4', 'g3', 'g2', 'g1',
+                'h8', 'h7', 'h6', 'h5', 'h4', 'h3', 'h2', 'h1'];
+            return list[Math.floor(Math.random() * (63 - 0) + 0)];
         }
 
         function calculateWinner(seconds, minutes) {
-            let end=false;
-           if(seconds ===0 & minutes===0){
-                end=true;
-           }
-           return end;
+            let end = false;
+            if (seconds === 0 & minutes === 0) {
+                end = true;
+            }
+            return end;
         }
 
         ReactDOM.render(
