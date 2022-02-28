@@ -81,27 +81,43 @@
                 super(props);
                 this.state = {
                     squares: Array(64).fill(null),
+                    history: [],
                     score: 0,
                     tile: '  ',
                     minutes: 1,
                     seconds: 0,
                     displaytTimer: 0,
-                    timer:60,
-                    start: false
+                    timer: 60,
+                    start: false,
+                    moves:0
                 };
             }
 
             handleClick(i) {
                 const squares = this.state.squares.slice();
+                
                 if (calculateWinner(this.state.seconds, this.state.minutes) || !this.state.start) {
                     return;
                 }
+
                 this.state.score = this.state.score + checkScore(this.state.tile, i);
                 if (checkScore(this.state.tile, i) === 1) {
                     this.timeOnClic();
+                    const plays={
+                        text : "Tile:" + this.state.tile + ",  guess time 0:" + this.state.displaytTimer +" ✓",
+                        id : this.state.moves
+                    }
+                    this.state.moves =this.state.moves+1;
+                    this.state.history = this.state.history.concat(plays);
                     squares[i] = '✓';
                 } else {
                     this.timeOnClic();
+                    const plays={
+                        text : "Tile:" + this.state.tile + ",  guess time 0:" + this.state.displaytTimer+" X",
+                        id : this.state.moves
+                    }
+                    this.state.moves =this.state.moves+1;
+                    this.state.history = this.state.history.concat(plays);
                     squares[i] = 'X';
                 }
                 this.state.tile = getRandomTile();
@@ -109,6 +125,8 @@
                 this.setState({
                     squares: squares
                 });
+
+                
             }
 
             renderSquare(i) {
@@ -140,6 +158,8 @@
                     this.state.minutes = 1;
                     this.state.score = 0;
                     this.state.tile = getRandomTile();
+                    this.state.history=[];
+                    this.state.moves=0;
                 }
 
             }
@@ -159,9 +179,9 @@
                 clearInterval(this.interval);
             }
 
-            timeOnClic(){
-                this.state.displaytTimer=this.state.timer-this.state.seconds;
-                this.state.timer=this.state.seconds;
+            timeOnClic() {
+                this.state.displaytTimer = this.state.timer - this.state.seconds;
+                this.state.timer = this.state.seconds;
             }
 
             checkMin() {
@@ -280,7 +300,11 @@
                         </div>
                         <div>a-----b------c-----d----e-----f------g------h</div>
                         {this.renderPlayButton()}
-                        
+                        <ul>
+                            {this.state.history.map(item => (
+                                <li key={item.id}>{item.text}</li>
+                            ))}
+                        </ul>
                     </div>
                 );
             }
@@ -334,7 +358,7 @@
         }
 
         ReactDOM.render(
-            <Game />,
+            <Board />,
             document.getElementById('root')
         );
 
